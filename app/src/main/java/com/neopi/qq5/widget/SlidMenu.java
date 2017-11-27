@@ -1,6 +1,7 @@
-package com.neopi.qq5;
+package com.neopi.qq5.widget;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
@@ -19,11 +20,12 @@ import android.widget.LinearLayout;
  */
 public class SlidMenu extends HorizontalScrollView {
 
+	private final int DEFAULT_PADDING_RIGHT = 100 ;
 	private LinearLayout mWrapper; // ScrollView 的子布局
 	private ViewGroup mMenu; // 左侧侧边栏
 	private ViewGroup mContant; // 主布局
 	private int mMenuWidth = 100; // 左侧的布局宽度
-	private int mPaddingRight = 400; // 　　左侧离右边的距离
+	private int mPaddingRight ; // 　　左侧离右边的距离
 	private int mScreenWidth; // 屏幕宽度
 	private boolean once = true;  // 是否是第一次
 
@@ -45,7 +47,7 @@ public class SlidMenu extends HorizontalScrollView {
 		mScreenWidth = outMetrics.widthPixels;
 
 		mPaddingRight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
-				400, context.getResources().getDisplayMetrics());
+				DEFAULT_PADDING_RIGHT, context.getResources().getDisplayMetrics());
 	}
 
 	@Override
@@ -100,6 +102,15 @@ public class SlidMenu extends HorizontalScrollView {
 	private void closeMenu() {
 		this.smoothScrollTo(mMenuWidth,0);
 	}
-	
-	
+
+
+	@Override
+	protected void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+		closeMenu();
+
+		int direction = newConfig.getLayoutDirection();
+		if (direction == Configuration.ORIENTATION_PORTRAIT) {
+		}
+	}
 }
