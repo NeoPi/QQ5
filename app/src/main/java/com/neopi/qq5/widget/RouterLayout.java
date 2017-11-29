@@ -1,6 +1,8 @@
 package com.neopi.qq5.widget;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -9,11 +11,12 @@ import android.support.annotation.Nullable;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+
+import com.neopi.qq5.R;
 
 /**
  * Author    :  NeoPi
@@ -24,11 +27,17 @@ import android.widget.LinearLayout;
 public class RouterLayout extends LinearLayout {
 
     private String TAG = "RouterLayout";
+
     private ViewPager viewPager ;
     private Context context ;
     private Paint mLinePaint ;
     private TabItem lastSelectItem ;
     private int lastSelectIndex = -1 ;
+
+    private int childWidth ;
+    private int childHeight ;
+
+    private boolean showCenterIcon ;
 
     private OnItemClickListener listener ;
 
@@ -100,28 +109,75 @@ public class RouterLayout extends LinearLayout {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
-        int childCount = getChildCount();
-        int childWidth = getMeasuredWidth() / childCount;
-        int height = getMeasuredHeight();
-        for (int i = 0; i < childCount; i++) {
-            View child = getChildAt(i) ;
-            ViewGroup.LayoutParams lp = child.getLayoutParams();
-            lp.width = childWidth;
-            lp.height = height;
-            measureChild(child,widthMeasureSpec,heightMeasureSpec);
+        if (!showCenterIcon) {
+            int childCount = getChildCount();
+            childWidth = getMeasuredWidth() / childCount;
+            childHeight = getMeasuredHeight();
+            for (int i = 0; i < childCount; i++) {
+                View child = getChildAt(i) ;
+                ViewGroup.LayoutParams lp = child.getLayoutParams();
+                lp.width = childWidth;
+                lp.height = childHeight;
+                measureChild(child,widthMeasureSpec,heightMeasureSpec);
+            }
+        } else {
+            int childCount = getChildCount();
+            childWidth = getMeasuredWidth() / (childCount + 1);
+            childHeight = getMeasuredHeight();
+            for (int i = 0; i < childCount; i++) {
+                View child = getChildAt(i) ;
+                ViewGroup.LayoutParams lp = child.getLayoutParams() ;
+                lp.width = childWidth ;
+                lp.height = childHeight ;
+                measureChild(child,widthMeasureSpec,heightMeasureSpec) ;
+            }
         }
     }
 
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        super.onLayout(changed, l, t, r, b);
+        if (showCenterIcon) {
+            int childCount = getChildCount();
+            int centerIndex = childCount / 2 ;
+
+            for (int i = 0; i < childCount; i++) {
+                int index = i ;
+                View childAt = getChildAt(i);
+                if (i < centerIndex) {
+
+                } else {
+                    index = i + 1 ;
+                }
+                childAt.layout(index * childWidth, 0,(index + 1) * childWidth,childHeight);
+            }
+        } else {
+            super.onLayout(changed, l, t, r, b);
+        }
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         drawLine(canvas);
+
+        if (showCenterIcon) {
+            drawCenterIcon(canvas);
+        }
+    }
+
+    Rect centerRect ;
+    private void drawCenterIcon(Canvas canvas) {
+        Bitmap btnBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.icon_plus) ;
+        int centerIndex = getChildCount() / 2 ;
+        int width = Math.min(btnBitmap.getWidth(),btnBitmap.getHeight());
+        int xOffset = (childWidth - width) / 2;
+        int yOffset = (childHeight - width) / 2 ;
+        centerRect = new Rect(centerIndex * childWidth + xOffset,
+                0 + yOffset,
+                (centerIndex + 1) * childWidth - xOffset,
+                childHeight - yOffset);
+        canvas.drawBitmap(btnBitmap,null,centerRect,mLinePaint);
     }
 
     @Override
@@ -129,7 +185,11 @@ public class RouterLayout extends LinearLayout {
         int action = event.getAction() ;
         switch (action) {
             case MotionEvent.ACTION_UP:
-                onTabClick(event.getX(),event.getY());
+                if (centerRect != null && centerRect.contains((int)event.getX(),(int)event.getY()) && listener != null) {
+                    listener.onCenterIconClick();
+                } else {
+                    onTabClick(event.getX(),event.getY());
+                }
                 break;
         }
 
@@ -227,6 +287,11 @@ public class RouterLayout extends LinearLayout {
         }
     }
 
+    public void setShowCenterIcon (boolean show) {
+        this.showCenterIcon = show ;
+        requestLayout();
+    }
+
 
     public interface OnItemClickListener {
 
@@ -237,7 +302,10 @@ public class RouterLayout extends LinearLayout {
         void onTabReleased (TabItem tabItem,int index) ;
 
         /** 重复点击 */
-        void onTabRepeat(TabItem tabItem,int index);
+        void onTabRepeat(TabItem tabItem,int index) ;
+
+        /** */
+        void onCenterIconClick();
     }
 
 }

@@ -3,6 +3,7 @@ package com.neopi.qq5;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.Toast;
 
 import com.neopi.qq5.adapter.MainPageAdapter;
 import com.neopi.qq5.widget.RouterLayout;
@@ -48,6 +49,11 @@ public class MainActivity extends AppCompatActivity {
 			@Override
 			public void onTabRepeat(TabItem tabItem, int index) {
 
+			}
+
+			@Override
+			public void onCenterIconClick() {
+				Toast.makeText(MainActivity.this,"center" ,Toast.LENGTH_SHORT).show();
 			}
 		});
 	}
